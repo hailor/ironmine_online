@@ -1,0 +1,12 @@
+.vagrant
+puppet/Puppetfile.lock
+puppet/.tmp
+puppet/modules/java
+puppet/modules/mysql
+puppet/modules/nginx
+puppet/modules/rvm
+puppet/modules/stdlib
+puppet/modules/vcsrepo
+*/.DS_Store
+.DS_Store
+puppet/modules/ironmine/files/irm_prod_uat_2013-07-16.sql

@@ -1,0 +1,8 @@
+forge "http://forge.puppetlabs.com"
+
+mod "maestrodev/rvm"
+mod "thias/nginx"
+mod "puppetlabs/mysql"
+mod "puppetlabs/vcsrepo"
+mod "puppetlabs/java"
+
