@@ -134,18 +134,18 @@ file { [ "/var/apps/ironmine"]:
        require => File["/var/apps"]
 }
 
-file {"unicorn_config_file":
-    path=> "${app_folder}/config/unicorn.rb",
-    content => template('ironmine/unicorn.rb.erb'),
-    require => [File["${app_folder}"],Exec["install_unicorn"]],
-}
-
-file {"unicorn_ctl_file":
-    path=> "${app_folder}/script/unicorn.sh",
-    content => template('ironmine/unicorn.sh.erb'),
-    mode    => '0777',
-    require => [File["${app_folder}"],Exec["install_unicorn"]],
-}
+#file {"unicorn_config_file":
+#    path=> "${app_folder}/config/unicorn.rb",
+#    content => template('ironmine/unicorn.rb.erb'),
+#    require => [File["${app_folder}"],Exec["install_unicorn"]],
+#}
+#
+#file {"unicorn_ctl_file":
+#    path=> "${app_folder}/script/unicorn.sh",
+#    content => template('ironmine/unicorn.sh.erb'),
+#    mode    => '0777',
+#    require => [File["${app_folder}"],Exec["install_unicorn"]],
+#}
 
 exec { "gems_install" :
   command => "/usr/local/rvm/bin/rvm-shell ${ruby_version} -c 'bundle install'",
