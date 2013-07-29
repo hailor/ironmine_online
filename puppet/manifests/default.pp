@@ -84,14 +84,14 @@ file {"data_file":
     require => [Database["irm_prod"]],
 }
 
-exec { "import_data" :
+exec { "import_dev_data" :
   command => "/usr/bin/mysql -u root --password=root --database=irm_dev --skip-column-names -e 'source /var/datas/irm_prod_uat_2013-07-16.sql;'",
   timeout=> 30000,
   onlyif=> 'test -z "$(/usr/bin/mysql -u root --password=root --database=irm_dev --skip-column-names -e "show tables;")"',
   require => [File["data_file"]]
 }
 
-exec { "import_data" :
+exec { "import_prod_data" :
   command => "/usr/bin/mysql -u root --password=root --database=irm_prod --skip-column-names -e 'source /var/datas/irm_prod_uat_2013-07-16.sql;'",
   timeout=> 30000,
   onlyif=> 'test -z "$(/usr/bin/mysql -u root --password=root --database=irm_prod --skip-column-names -e "show tables;")"',
