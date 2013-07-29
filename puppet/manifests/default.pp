@@ -39,7 +39,16 @@ rvm_system_ruby {
 }
 
 class { 'mysql::server':
-  config_hash => { 'root_password' => 'ironmineroot' }
+  config_hash => { 'root_password' => 'root' }
+}
+
+mysql::db { 'irm_dev':
+  user     => 'ironmine',
+  password => 'handoracle',
+  host     => 'localhost',
+  grant    => ['all'],
+  charset => 'utf8',
+  require => Class['mysql::server']
 }
 
 mysql::db { 'irm_prod':
@@ -51,13 +60,21 @@ mysql::db { 'irm_prod':
   require => Class['mysql::server']
 }
 
+mysql::db { 'irm_test':
+  user     => 'ironmine',
+  password => 'handoracle',
+  host     => 'localhost',
+  grant    => ['all'],
+  charset => 'utf8',
+  require => Class['mysql::server']
+}
 
-database_grant { 'ironmine@*/*':
+database_grant { 'ironmine@%/*':
   privileges => ['all'] ,
   require => Class['mysql::server']
 }
 
-database_grant { 'root@*/*':
+database_grant { 'root@%/*':
   privileges => ['all'],
   require => Class['mysql::server'] 
 }
@@ -73,11 +90,12 @@ file {"data_file":
 }
 
 exec { "import_data" :
-  command => "/usr/bin/mysql -u root --password=ironmineroot --database=irm_prod --skip-column-names -e 'source /var/datas/irm_prod_uat_2013-07-16.sql;'",
+  command => "/usr/bin/mysql -u root --password=ironmineroot --database=irm_dev --skip-column-names -e 'source /var/datas/irm_prod_uat_2013-07-16.sql;'",
   timeout=> 30000,
-  onlyif=> 'test -z "$(/usr/bin/mysql -u root --password=ironmineroot --database=irm_prod --skip-column-names -e "show tables;")"',
+  onlyif=> 'test -z "$(/usr/bin/mysql -u root --password=ironmineroot --database=irm_dev --skip-column-names -e "show tables;")"',
   require => [File["data_file"]]
 }
+
 
 include nginx
 
@@ -93,10 +111,18 @@ nginx::file { 'www.ironmine.com.conf':
 #  ensure => 'present'
 #}
 
-package {'ruby-devel':ensure   => 'present'}
 
-package {'mysql-devel':ensure   => 'present'}
 
+case $::osfamily {
+   'debian': {
+     package {'ruby-dev':ensure   => 'present'}
+     package {'libmysqlclient-dev':ensure   => 'present'} 
+   }
+   default: {
+     package {'ruby-devel':ensure   => 'present'}
+     package {'mysql-devel':ensure   => 'present'}
+   }
+}
 
 
 exec { "install_bundler" :
