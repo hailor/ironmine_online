@@ -74,11 +74,6 @@ database_grant { 'ironmine@%/*':
   require => Class['mysql::server']
 }
 
-database_grant { 'root@%/*':
-  privileges => ['all'],
-  require => Class['mysql::server'] 
-}
-
 file { [ "/var/datas" ]:
        ensure => "directory",
 }
@@ -90,9 +85,16 @@ file {"data_file":
 }
 
 exec { "import_data" :
-  command => "/usr/bin/mysql -u root --password=ironmineroot --database=irm_dev --skip-column-names -e 'source /var/datas/irm_prod_uat_2013-07-16.sql;'",
+  command => "/usr/bin/mysql -u root --password=root --database=irm_dev --skip-column-names -e 'source /var/datas/irm_prod_uat_2013-07-16.sql;'",
   timeout=> 30000,
-  onlyif=> 'test -z "$(/usr/bin/mysql -u root --password=ironmineroot --database=irm_dev --skip-column-names -e "show tables;")"',
+  onlyif=> 'test -z "$(/usr/bin/mysql -u root --password=root --database=irm_dev --skip-column-names -e "show tables;")"',
+  require => [File["data_file"]]
+}
+
+exec { "import_data" :
+  command => "/usr/bin/mysql -u root --password=root --database=irm_prod --skip-column-names -e 'source /var/datas/irm_prod_uat_2013-07-16.sql;'",
+  timeout=> 30000,
+  onlyif=> 'test -z "$(/usr/bin/mysql -u root --password=root --database=irm_prod --skip-column-names -e "show tables;")"',
   require => [File["data_file"]]
 }
 
