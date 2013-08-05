@@ -15,7 +15,7 @@ if [ -x $YUM ]; then
     fi
     yum -q -y makecache
     yum -q -y install  ruby-devel rubygems
-    yum groupinstall "Development Tools"
+    yum -q -y groupinstall "Development Tools"
 fi
 if [ ! -x $GIT ]; then
     if [ -x $YUM ]; then
@@ -49,6 +49,6 @@ command -v puppet >/dev/null 2>&1 || {
 if [ "$(gem search -i librarian-puppet)" = "false" ]; then
   gem install librarian-puppet --source http://ruby.taobao.org/ --no-rdoc --no-ri  
   cd $PUPPET_DIR && librarian-puppet update
-else
+#else
   cd $PUPPET_DIR && librarian-puppet update
 fi

@@ -18,7 +18,7 @@ user { 'nginx':
 
 user { 'ironmine':
   ensure   => 'present',
-  groups => ['ironmine','web'],
+  groups => ['web'],
   comment  => 'ironmine user',
   managehome => 'true',
   shell    => '/bin/sh',
@@ -88,14 +88,14 @@ exec { "import_dev_data" :
   command => "/usr/bin/mysql -u root --password=root --database=irm_dev --skip-column-names -e 'source /var/datas/irm_prod_uat_2013-07-16.sql;'",
   timeout=> 30000,
   onlyif=> 'test -z "$(/usr/bin/mysql -u root --password=root --database=irm_dev --skip-column-names -e "show tables;")"',
-  require => [File["data_file"]]
+  require => [File["data_file"],Database['irm_dev']]
 }
 
 exec { "import_prod_data" :
   command => "/usr/bin/mysql -u root --password=root --database=irm_prod --skip-column-names -e 'source /var/datas/irm_prod_uat_2013-07-16.sql;'",
   timeout=> 30000,
   onlyif=> 'test -z "$(/usr/bin/mysql -u root --password=root --database=irm_prod --skip-column-names -e "show tables;")"',
-  require => [File["data_file"]]
+  require => [File["data_file"],Database['irm_prod']]
 }
 
 
@@ -141,6 +141,8 @@ exec { "install_unicorn" :
   require => [Rvm_system_ruby["${ruby_version}"]]
 }
 
+
+
 #file { [ "/var/apps" ]:
 #       ensure => "directory",
 #}
@@ -154,6 +156,7 @@ exec { "install_unicorn" :
 #  source => 'http://github.com/aronezhang/ironmine.git',
 #  require => File["${app_folder}"]
 #}
+
 file { [ "/var/apps"]:
        ensure => "directory",
 }
@@ -179,6 +182,56 @@ exec { "gems_install" :
   command => "/usr/local/rvm/bin/rvm-shell ${ruby_version} -c 'bundle install'",
   cwd => "${app_folder}",
   timeout=> 30000,
-  require => [File["${app_folder}"],Exec["install_bundler"]]
+  require => [File["${app_folder}"],Exec["install_bundler"],Ironmine::Tarball["instantclient-basic-linux.x64-11.2.0.3.0"],Ironmine::Tarball["instantclient-sdk-linux.x64-11.2.0.3.0"],Ironmine::Tarball["instantclient-sqlplus-linux.x64-11.2.0.3.0"]]
 }
 
+ironmine::tarball{"instantclient-basic-linux.x64-11.2.0.3.0":
+  source => "puppet:///modules/ironmine/instantclient-basic-linux.x64-11.2.0.3.0.zip",
+  target_dir => "/var/apps/oracle_client",
+  target => "instantclient_11_2",
+  compress_type => "zip",
+  install => "ln -s /var/apps/oracle_client/instantclient_11_2/libocci.so.11.1  /var/apps/oracle_client/instantclient_11_2/libocci.so ",
+  unless => "test -e /var/apps/oracle_client/instantclient_11_2/libocci.so.11.1",
+  require => [File["/var/apps"]]  
+}
+
+ironmine::tarball{"instantclient-sdk-linux.x64-11.2.0.3.0":
+  source => "puppet:///modules/ironmine/instantclient-sdk-linux.x64-11.2.0.3.0.zip",
+  target_dir => "/var/apps/oracle_client",
+  target => "instantclient_11_2",
+  compress_type => "zip",
+  unless => "test -d /var/apps/oracle_client/instantclient_11_2/sdk",
+  require => [File["/var/apps"] ] 
+}
+
+ironmine::tarball{"instantclient-sqlplus-linux.x64-11.2.0.3.0":
+  source => "puppet:///modules/ironmine/instantclient-sqlplus-linux.x64-11.2.0.3.0.zip",
+  target_dir => "/var/apps/oracle_client",
+  target => "instantclient_11_2",
+  compress_type => "zip",
+  unless => "test -e /var/apps/oracle_client/instantclient_11_2/sqlplus",
+  require => [File["/var/apps"] ] 
+}
+
+
+package {'libreoffice':ensure   => 'present'}
+
+ironmine::tarball{"unoconv":
+  source => "http://dag.wieers.com/home-made/unoconv/unoconv-0.6.tar.gz",
+  target_dir => "/var/apps",
+  target => "unoconv-0.6",
+  unless => "test -e /usr/bin/unoconv",
+  install => "ln -s /var/apps/unoconv-0.6/unoconv /usr/bin/unoconv",
+  require => [File["/var/apps"],Package['libreoffice']] 
+}
+
+
+ironmine::tarball{"wkhtmltopdf":
+  source => "http://wkhtmltopdf.googlecode.com/files/wkhtmltopdf-0.9.9-static-amd64.tar.bz2",
+  target_dir => "/var/apps/wkhtmltopdf",
+  target => "",
+  compress_type => "bz2",
+  unless => "test -e /var/apps/wkhtmltopdf/wkhtmltopdf-amd64",
+  install => "ln -s /var/apps/wkhtmltopdf/wkhtmltopdf-amd64 /usr/local/bin/wkhtmltopdf",
+  require => [File["/var/apps"]] 
+}

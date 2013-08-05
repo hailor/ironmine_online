@@ -15,10 +15,7 @@ if [ -x $YUM ]; then
     fi
     yum -q -y makecache
     yum -q -y install  ruby-devel rubygems
-    yum groupinstall "Development Tools"
-elif [ -x $APT_GET ]; then
-    apt-get -q -y update
-    apt-get -q -y install  ruby-devel rubygems
+    yum -q -y groupinstall "Development Tools"
 fi
 if [ ! -x $GIT ]; then
     if [ -x $YUM ]; then
