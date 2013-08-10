@@ -1,41 +1,39 @@
 Exec { path => [ "/bin/", "/sbin/" , "/usr/bin/", "/usr/sbin/" ] }
 
 $app_folder = "/var/apps/ironmine"
-$ruby_version = "ruby-1.9.2-p318"
+$ruby_version = "ruby-1.9.2-p320"
 $mysql_table_detect = "/var/apps/ironmine"
 
-group { ["web","ironmine"]:
-    ensure => "present",
-}
-
-user { 'nginx':
-  ensure   => 'present',
-  comment  => 'nginx user',
-  groups => ['web'],
-  shell    => '/sbin/nologin',
-  require => Group["web"]
-}
 
 user { 'ironmine':
   ensure   => 'present',
-  groups => ['web'],
   comment  => 'ironmine user',
   managehome => 'true',
   shell    => '/bin/sh',
-  require => Group["web"]
+  membership => minimum,
 }
 
 class { 'java':
   distribution => 'jdk',
   version => 'latest',
 }
-
+#sed -i 's!ftp.ruby-lang.org/pub/ruby!ruby.taobao.org/mirrors/ruby!' $rvm_path/config/db
 include rvm 
 
 rvm_system_ruby {
   "${ruby_version}":
     ensure => 'present',
     default_use => false;
+}
+
+class {
+  'rvm::passenger::apache':
+    version => '4.0.10',
+    ruby_version => "$ruby_version",
+    mininstances => '3',
+    maxinstancesperapp => '0',
+    maxpoolsize => '30',
+    spawnmethod => 'smart-lv2';
 }
 
 class { 'mysql::server':
@@ -99,11 +97,11 @@ exec { "import_prod_data" :
 }
 
 
-include nginx
-
-nginx::file { 'www.ironmine.com.conf':
-  content => template('ironmine/nginx.conf.erb')
-} 
+#include nginx
+#
+#nginx::file { 'www.ironmine.com.conf':
+#  content => template('ironmine/nginx.conf.erb')
+#} 
 
 #file { "/etc/nginx/nginx.conf":
 #  content => template('ironmine/nginx.conf.erb'),
@@ -134,12 +132,12 @@ exec { "install_bundler" :
   require => [Rvm_system_ruby["${ruby_version}"]]
 }
 
-exec { "install_unicorn" :
-  command => "/usr/local/rvm/bin/rvm-shell ${ruby_version} -c 'gem install  unicorn --source http://ruby.taobao.org/ --no-rdoc --no-ri  '",
-  timeout=> 30000,
-  unless=> "/usr/local/rvm/bin/rvm-shell ${ruby_version} -c 'gem list  unicorn -i'",
-  require => [Rvm_system_ruby["${ruby_version}"]]
-}
+#exec { "install_unicorn" :
+#  command => "/usr/local/rvm/bin/rvm-shell ${ruby_version} -c 'gem install  unicorn --source http://ruby.taobao.org/ --#no-rdoc --no-ri  '",
+#  timeout=> 30000,
+#  unless=> "/usr/local/rvm/bin/rvm-shell ${ruby_version} -c 'gem list  unicorn -i'",
+#  require => [Rvm_system_ruby["${ruby_version}"]]
+#}
 
 
 
@@ -179,7 +177,7 @@ file { [ "/var/apps/ironmine"]:
 #}
 
 exec { "gems_install" :
-  command => "/usr/local/rvm/bin/rvm-shell ${ruby_version} -c 'bundle install'",
+  command => "/usr/local/rvm/bin/rvm-shell ${ruby_version} -c 'export NLS_LANG=AMERICAN_AMERICA.UTF8&&export ORACLE_HOME=/var/apps/oracle_client/instantclient_11_2&&export LD_LIBRARY_PATH=/var/apps/oracle_client/instantclient_11_2&&bundle install'",
   cwd => "${app_folder}",
   timeout=> 30000,
   require => [File["${app_folder}"],Exec["install_bundler"],Ironmine::Tarball["instantclient-basic-linux.x64-11.2.0.3.0"],Ironmine::Tarball["instantclient-sdk-linux.x64-11.2.0.3.0"],Ironmine::Tarball["instantclient-sqlplus-linux.x64-11.2.0.3.0"]]
@@ -190,8 +188,8 @@ ironmine::tarball{"instantclient-basic-linux.x64-11.2.0.3.0":
   target_dir => "/var/apps/oracle_client",
   target => "instantclient_11_2",
   compress_type => "zip",
-  install => "ln -s /var/apps/oracle_client/instantclient_11_2/libocci.so.11.1  /var/apps/oracle_client/instantclient_11_2/libocci.so ",
-  unless => "test -e /var/apps/oracle_client/instantclient_11_2/libocci.so.11.1",
+  install => "ln -s /var/apps/oracle_client/instantclient_11_2/libocci.so.11.1  /var/apps/oracle_client/instantclient_11_2/libocci.so&&ln -s /var/apps/oracle_client/instantclient_11_2/libclntsh.so.11.1 /var/apps/oracle_client/instantclient_11_2/libclntsh.so",
+  unless => "test -e /var/apps/oracle_client/instantclient_11_2/libocci.so",
   require => [File["/var/apps"]]  
 }
 

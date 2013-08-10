@@ -12,7 +12,14 @@ YUM=/usr/bin/yum
 if [ -x $YUM ]; then
     if [ ! "`rpm -q epel-release-6-8.noarch`" = "epel-release-6-8.noarch" ];then
           rpm -Uvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+          rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6
     fi
+
+    if [ ! "`rpm -q rpmforge-release-0.5.3-1.el6.rf.x86_64`" = "rpmforge-release-0.5.3-1.el6.rf.x86_64" ];then
+          rpm -Uvh http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
+          rpm --import http://apt.sw.be/RPM-GPG-KEY.dag.txt
+    fi
+
     yum -q -y makecache
     yum -q -y install  ruby-devel rubygems
     yum -q -y groupinstall "Development Tools"
