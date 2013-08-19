@@ -228,7 +228,7 @@ ironmine::tarball{"wkhtmltopdf":
   source => "http://wkhtmltopdf.googlecode.com/files/wkhtmltopdf-0.9.9-static-amd64.tar.bz2",
   target_dir => "/var/apps/wkhtmltopdf",
   target => "",
-  compress_type => "bz2",
+  compress_type => "tar",
   unless => "test -e /var/apps/wkhtmltopdf/wkhtmltopdf-amd64",
   install => "ln -s /var/apps/wkhtmltopdf/wkhtmltopdf-amd64 /usr/local/bin/wkhtmltopdf",
   require => [File["/var/apps"]] 

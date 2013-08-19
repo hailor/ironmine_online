@@ -36,7 +36,7 @@ if [ ! -x $GIT ]; then
     fi
 fi
 
-command -v puppet >/dev/null 2>&1 || { 
+command -v puppet >/dev/null 2>&1 || {
     if [ -x $YUM ]; then
         if [ ! "`rpm -q puppetlabs-release-6-7.noarch`" = "puppetlabs-release-6-7.noarch" ];then
           rpm -ivh http://yum.puppetlabs.com/el/6/products/i386/puppetlabs-release-6-7.noarch.rpm
@@ -44,8 +44,14 @@ command -v puppet >/dev/null 2>&1 || {
         yum -q -y makecache
         yum -q -y install puppet
     elif [ -x $APT_GET ]; then
-        apt-get -q -y update
-        apt-get -q -y install puppet
+        CODENAME="$(lsb_release -cs)"
+        dpkg -L puppetlabs-release  2>/dev/null||{
+          cd /tmp
+          wget http://apt.puppetlabs.com/puppetlabs-release-$CODENAME.deb
+          dpkg -i puppetlabs-release-$CODENAME.deb
+          apt-get -q -y update
+          apt-get -q -y install puppet
+        }
     else
         echo "No package installer available. You may need to install puppet manually."
     fi
@@ -54,8 +60,8 @@ command -v puppet >/dev/null 2>&1 || {
 
 
 if [ "$(gem search -i librarian-puppet)" = "false" ]; then
-  gem install librarian-puppet --source http://ruby.taobao.org/ --no-rdoc --no-ri  
+  gem install librarian-puppet --source http://ruby.taobao.org/ --no-rdoc --no-ri
   cd $PUPPET_DIR && librarian-puppet update
-#else
+else
   cd $PUPPET_DIR && librarian-puppet update
 fi

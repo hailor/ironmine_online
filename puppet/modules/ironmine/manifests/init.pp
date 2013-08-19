@@ -51,7 +51,7 @@ class ironmine{
       'tgz','tar.gz': { $command = "tar -xzf /tmp/${file_name} -C ${target_dir}/" }
       'tar': { $command = "tar -xzf  /tmp/${file_name} -C ${target_dir}/" }
       'zip': { $command = "unzip -o /tmp/${file_name} -d ${target_dir}/" }
-      'bz2': { $command = "tar -jxf --overwrite /tmp/${file_name} -C ${target_dir}/" }
+      'bz2': { $command = "tar -jxf  /tmp/${file_name} -C ${target_dir}/" }
 
     }
   
